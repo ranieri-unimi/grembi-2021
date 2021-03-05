@@ -78,10 +78,16 @@ def get_reviews(pid, max_reviews=1000):
         breath()
         breath()
         
+        #menu_bt = WebDriverWait(_driver, 4).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))[0]
+        #menu_bt.click()
+        
         menu_bt = _driver.find_elements_by_xpath('//button[@data-value=\'Sort\']')[0]
         menu_bt.click()
-        breath()
+        #breath()
 
+        #recent_rating_bt = WebDriverWait(_driver, 4).until(EC.element_to_be_clickable((By.XPATH, '//li[@role=\'menuitemradio\']')))[1]
+        #recent_rating_bt.click()
+        
         recent_rating_bt = _driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[1]
         recent_rating_bt.click()
         breath()
@@ -103,7 +109,7 @@ def get_reviews(pid, max_reviews=1000):
                 break
             last_len = len(soup)
     except:
-        pass
+        print('raised exception ignored on', pid)
     return soup
 
 def clean_review(r):
