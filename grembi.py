@@ -72,15 +72,13 @@ def clean_place(obj):
 
 def get_reviews(pid, max_reviews=1000):
     global _driver
-    _driver.get(base_uri+res_uri+pid)
-    breath()
-    breath()
-    
+    soup = None
     try:
+        _driver.get(base_uri+res_uri+pid)
+        breath()
+        breath()
+        
         menu_bt = _driver.find_elements_by_xpath('//button[@data-value=\'Sort\']')[0]
-    except:
-        return None
-    else:
         menu_bt.click()
         breath()
 
@@ -104,8 +102,9 @@ def get_reviews(pid, max_reviews=1000):
             if sentinel > 2:
                 break
             last_len = len(soup)
-            
-        return soup
+    except:
+        pass
+    return soup
 
 def clean_review(r):
     x = {
@@ -190,7 +189,7 @@ def scrape_reviews(pid_list, min_reviews):
     kill_driver()
     return reviews_db
 
-def purify_data(place_db):
+def purify_data(places_db):
     data = [clean_place(p) for p in places_db]
     tmp = dict()
     
