@@ -39,7 +39,7 @@ def to_int(s):
     except:
         return 0
 
-def get_radars(south_west, north_east, meters):
+def get_radars(meters, south_west, north_east, **kwargs):
     radar_spot = []
     radio = to_radio(meters)
     s2n = south_west[0]
@@ -57,11 +57,10 @@ def get_places(margs):
     global _gmaps
     all_places = []
     response = _gmaps.places_nearby(**margs)
-    breath()
     all_places += response['results']
     while ('next_page_token' in response and response['next_page_token']):
-        response = _gmaps.places_nearby(page_token = response['next_page_token'])
         breath()
+        response = _gmaps.places_nearby(page_token = response['next_page_token'])
         all_places += response['results']
     return all_places
 
@@ -167,10 +166,10 @@ def kill_driver():
     global _driver
     _driver.quit()
     
-def sample_viewport(viewport, meters=100):
+def sample_viewport(meters, viewport):
     places_db = []
     for t in cute_types:
-        for r in get_radars(**viewport, meters=meters):
+        for r in get_radars(meters, **viewport):
             margs = {
                 'location':r,
                 'radius':meters*ROF,  
@@ -190,3 +189,28 @@ def scrape_reviews(pid_list, min_reviews):
                 reviews_db[pid].append(str(r))
     kill_driver()
     return reviews_db
+
+def purify_data(place_db):
+    data = [clean_place(p) for p in places_db]
+    tmp = dict()
+    
+    for i in data:
+        pid = i['place_id']
+        if pid not in tmp:
+            tmp[pid] = []
+        tmp[pid].append(i)
+
+    for k,v in tmp.items():
+        x = dict()
+        for i in v:
+            x = {**x, **i}
+        tmp[k] = x
+
+    return list(tmp.values())
+
+def enrich_data(data, reviews_db):
+    for i in data:
+        i['rewiews'] = []
+        for r in reviews_db[i['place_id']]:
+             i['rewiews'].append(clean_review(BeautifulSoup(r)))
+    return data
