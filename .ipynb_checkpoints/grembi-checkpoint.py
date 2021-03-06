@@ -17,7 +17,7 @@ from selenium.webdriver.support import expected_conditions as EC
 GRT = 0.85 # distorsione terrestre a milano
 ROF = 1.25 # radar overflow
 AK = pickle.load(open("C:/Users/Martin/OneDrive/onlyfans.pk", "rb"))
-BHD = 2
+BHD = 1.5
 
 _gmaps = googlemaps.Client(key=AK)
 _driver = None
@@ -75,30 +75,20 @@ def get_reviews(pid, max_reviews=1000):
     soup = None
     try:
         _driver.get(base_uri+res_uri+pid)
-        breath()
-        breath()
-        
-        #menu_bt = WebDriverWait(_driver, 4).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))[0]
-        #menu_bt.click()
-        
-        menu_bt = _driver.find_elements_by_xpath('//button[@data-value=\'Sort\']')[0]
-        menu_bt.click()
-        #breath()
 
-        #recent_rating_bt = WebDriverWait(_driver, 4).until(EC.element_to_be_clickable((By.XPATH, '//li[@role=\'menuitemradio\']')))[1]
-        #recent_rating_bt.click()
-        
-        recent_rating_bt = _driver.find_elements_by_xpath('//li[@role=\'menuitemradio\']')[1]
+        menu_bt = WebDriverWait(_driver, 7).until(EC.element_to_be_clickable((By.XPATH, '//button[@data-value=\'Sort\']')))
+        menu_bt.click()
+
+        recent_rating_bt = WebDriverWait(_driver, 7).until(EC.element_to_be_clickable((By.XPATH, '//li[@data-index=\'1\']')))
         recent_rating_bt.click()
-        breath()
 
         last_len = 0
         sentinel = 0
         for i in range(max_reviews//10):
+            breath(1)
             scrollable_div = _driver.find_element_by_css_selector('div.section-layout.section-scrollbox.scrollable-y.scrollable-show')
             _driver.execute_script('arguments[0].scrollTop = arguments[0].scrollHeight', scrollable_div)
-            breath()
-            
+
             soup = BeautifulSoup(_driver.page_source, 'html.parser').find_all('div', class_='section-review-content')
 
             if len(soup) == last_len:
@@ -197,6 +187,7 @@ def scrape_reviews(pid_list, min_reviews):
 
 def purify_data(places_db):
     data = [clean_place(p) for p in places_db]
+    data = [i for i in data if i['user_ratings_total'] or i['rating']]
     tmp = dict()
     
     for i in data:
