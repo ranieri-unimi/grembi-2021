@@ -17,7 +17,6 @@ from selenium.webdriver.support import expected_conditions as EC
 GRT = 0.85 # distorsione terrestre a milano
 ROF = 1.25 # radar overflow
 AK = pickle.load(open("C:/Users/Martin/OneDrive/onlyfans.pk", "rb"))
-BHD = 1.5
 
 _gmaps = googlemaps.Client(key=AK)
 _driver = None
@@ -27,7 +26,7 @@ res_uri = 'place/?q=place_id:'
 cute_types = ['meal_delivery', 'meal_takeaway', 'restaurant', 'bar', 'cafe', ]
 cute_attr = ['name', 'place_id', 'price_level', 'rating', 'user_ratings_total', ]
 
-def breath(deep=BHD):
+def breath(deep=2.0):
     time.sleep(deep)
 
 def to_radio(meters):
@@ -60,8 +59,12 @@ def get_places(margs):
     all_places += response['results']
     while ('next_page_token' in response and response['next_page_token']):
         breath()
-        response = _gmaps.places_nearby(page_token = response['next_page_token'])
-        all_places += response['results']
+        try:
+            response = _gmaps.places_nearby(page_token = response['next_page_token'])
+        except:
+            print('unhandled api burned')
+        else:
+            all_places += response['results']
     return all_places
 
 def clean_place(obj):
