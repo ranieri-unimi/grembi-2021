@@ -109,7 +109,7 @@ def clean_review(r):
     x = {
         'id': r.find('button',class_='section-review-action-menu')['data-review-id'],
         'user': r.find('div', class_='section-review-title').find('span').text,
-        'is_elite': False,
+        'is_elite': 0,
         'rank': 0,
         'text': '',
         'stars': to_int(r.find('span', class_='section-review-stars')['aria-label']),
@@ -130,10 +130,10 @@ def clean_review(r):
     except:
         pass
     else:
-#        print(sub, spn)
         if len(spn) > 1:
             x['rank'] = to_int(spn[1].text)
-            x['is_elite'] = len(sub.find_all(attrs={"style" : "display:none"})) == 0
+            if len(sub.find_all(attrs={"style" : "display:none"})) 
+                x['is_elite'] = 1
     return x
 
 def get_time(value_date, unit_date, **kwargs):
@@ -209,7 +209,7 @@ def purify_data(places_db):
 
 def enrich_data(data, reviews_db):
     for i in data:
-        i['rewiews'] = []
+        i['reviews'] = []
         for r in reviews_db[i['place_id']]:
-             i['rewiews'].append(clean_review(BeautifulSoup(r)))
+             i['reviews'].append(clean_review(BeautifulSoup(r)))
     return data
