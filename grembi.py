@@ -132,7 +132,7 @@ def clean_review(r):
     else:
         if len(spn) > 1:
             x['rank'] = to_int(spn[1].text)
-            if len(sub.find_all(attrs={"style" : "display:none"})) 
+            if len(sub.find_all(attrs={"style" : "display:none"})):
                 x['is_elite'] = 1
     return x
 
