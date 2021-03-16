@@ -24,7 +24,9 @@ _driver = None
 base_uri = 'https://www.google.com/maps/'
 res_uri = 'place/?q=place_id:'
 cute_types = ['meal_delivery', 'meal_takeaway', 'restaurant', 'bar', 'cafe', ]
+red_types = ['delivery_takeaway', 'restaurant', 'bar_cafe', ]
 cute_attr = ['name', 'place_id', 'price_level', 'rating', 'user_ratings_total', ]
+ren_attr = ['place_name', 'place_id', 'price_level', 'avg_stars', 'place_popularity', ]
 
 def breath(deep=2.0):
     time.sleep(deep)
@@ -32,11 +34,9 @@ def breath(deep=2.0):
 def to_radio(meters):
     return (0.000009)*2*meters/math.sqrt(3)
 
-def to_int(s):
-    try:
-        return int(re.sub("[^0-9]", "", s))
-    except:
-        return 0
+def to_int(s, default=0):
+    tmp = re.sub("[^0-9]", "", s)
+    return int(tmp) if tmp else default
 
 def get_radars(meters, south_west, north_east, **kwargs):
     radar_spot = []
@@ -71,6 +71,11 @@ def clean_place(obj):
     x = {k:obj.get(k, None) for k in cute_attr}
     for t in cute_types:
         x[t] = t in obj['types']
+        
+    # LEGACY EDIT
+    x['delivery_takeaway'] = x['meal_delivery'] or x['meal_takeaway']
+    x['bar_cafe'] = x['bar'] or x['cafe']
+    
     return x
 
 def get_reviews(pid, max_reviews=1000):
@@ -108,10 +113,7 @@ def get_reviews(pid, max_reviews=1000):
 def clean_review(r):
     x = {
         'id': r.find('button',class_='section-review-action-menu')['data-review-id'],
-        'user': r.find('div', class_='section-review-title').find('span').text,
-        'is_elite': 0,
-        'rank': 0,
-        'text': '',
+        'user_name': r.find('div', class_='section-review-title').find('span').text,
         'stars': to_int(r.find('span', class_='section-review-stars')['aria-label']),
         'value_date': r.find('span', class_='section-review-publish-date').text.split()[0],
         'unit_date': r.find('span', class_='section-review-publish-date').text.split()[1],
@@ -122,18 +124,18 @@ def clean_review(r):
     try:
         x['text'] = ' '.join(r.find('span', class_='section-review-text').text.split())
     except:
-        pass
+        x['text'] = ''
     
     try:
         sub = r.find('div', class_='section-review-subtitle')
         spn = sub.findAll('span')
     except:
-        pass
+        x['user_popularity'] = 1
+        x['is_player'] = 0
     else:
         if len(spn) > 1:
-            x['rank'] = to_int(spn[1].text)
-            if len(sub.find_all(attrs={"style" : "display:none"})):
-                x['is_elite'] = 1
+            x['user_popularity'] = to_int(spn[1].text, 1)
+            x['is_player'] = 1 if len(sub.find_all(attrs={"style" : "display:none"})) else 0
     return x
 
 def get_time(value_date, unit_date, **kwargs):
